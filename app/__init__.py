@@ -56,4 +56,34 @@ def create_app(config_name='development'):
     from app.services.mercadopago import webhook
     app.route('/webhook/mercadopago', methods=['POST'])(webhook)
 
+    # Rodar migrations automaticamente em produção (apenas na primeira execução)
+    with app.app_context():
+        db.create_all()
+        # Criar dados iniciais se não existirem
+        from app.models import User, Categoria
+        if not User.query.first():
+            admin = User(
+                email='admin@techzone.com',
+                nome='Administrador',
+                is_admin=True
+            )
+            admin.set_senha('admin123')
+            db.session.add(admin)
+
+            # Criar categorias
+            categorias = [
+                ('Carregadores', 'carregadores'),
+                ('Fones de Ouvido', 'fones-de-ouvido'),
+                ('Cabos', 'cabos'),
+                ('Capas', 'capas'),
+                ('Baterias', 'baterias'),
+                ('Outros', 'outros'),
+            ]
+            for nome, slug in categorias:
+                if not Categoria.query.filter_by(slug=slug).first():
+                    cat = Categoria(nome=nome, slug=slug)
+                    db.session.add(cat)
+
+            db.session.commit()
+
     return app

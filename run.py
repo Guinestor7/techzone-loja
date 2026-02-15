@@ -3,6 +3,37 @@ from app import create_app, db
 
 app = create_app(os.getenv('FLASK_ENV', 'development'))
 
+# Inicializar banco de dados automaticamente
+with app.app_context():
+    db.create_all()
+    # Criar admin e categorias se não existirem
+    from app.models import User, Categoria
+    if not User.query.first():
+        admin = User(
+            email='admin@techzone.com',
+            nome='Administrador',
+            is_admin=True
+        )
+        admin.set_senha('admin123')
+        db.session.add(admin)
+
+        # Criar categorias
+        categorias = [
+            ('Carregadores', 'carregadores'),
+            ('Fones de Ouvido', 'fones-de-ouvido'),
+            ('Cabos', 'cabos'),
+            ('Capas', 'capas'),
+            ('Baterias', 'baterias'),
+            ('Outros', 'outros'),
+        ]
+        for nome, slug in categorias:
+            if not Categoria.query.filter_by(slug=slug).first():
+                cat = Categoria(nome=nome, slug=slug)
+                db.session.add(cat)
+
+        db.session.commit()
+        print("✅ Admin e categorias criados automaticamente!")
+
 
 @app.shell_context_processor
 def make_shell_context():
