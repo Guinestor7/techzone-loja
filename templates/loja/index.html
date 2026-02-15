@@ -1,0 +1,250 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<style>
+.hero-section {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border-radius: 1rem;
+    padding: 4rem 2rem;
+    color: white;
+    margin-bottom: 3rem;
+}
+.category-card {
+    transition: all 0.3s ease;
+    border: none;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.08);
+}
+.category-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+}
+.category-card .card-body {
+    padding: 1.5rem;
+}
+.category-icon {
+    font-size: 2.5rem;
+    margin-bottom: 0.5rem;
+}
+.product-card-new {
+    transition: all 0.3s ease;
+    border: none;
+    box-shadow: 0 2px 15px rgba(0,0,0,0.08);
+    overflow: hidden;
+}
+.product-card-new:hover {
+    transform: translateY(-8px);
+    box-shadow: 0 15px 35px rgba(0,0,0,0.15);
+}
+.product-card-new .card-img-top {
+    height: 220px;
+    object-fit: contain;
+    padding: 1.5rem;
+    background: #f8f9fa;
+}
+.product-card-new .card-body {
+    padding: 1.25rem;
+}
+.feature-box {
+    text-align: center;
+    padding: 2rem 1rem;
+}
+.feature-icon {
+    width: 70px;
+    height: 70px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 1rem;
+    font-size: 1.75rem;
+}
+</style>
+
+<!-- Hero Section -->
+<div class="hero-section">
+    <div class="row align-items-center">
+        <div class="col-lg-7">
+            <span class="badge bg-warning text-dark mb-3">🔥 Ofertas Imperdíveis</span>
+            <h1 class="display-4 fw-bold mb-3">TechZone - Seu Celular Novo de Novo!</h1>
+            <p class="lead mb-4 opacity-75">
+                Os melhores acessórios para seu celular com os melhores preços.
+                Carregadores, fones, cabos e muito mais!
+            </p>
+            <div class="d-flex gap-3">
+                <a href="{{ url_for('loja.produtos') }}" class="btn btn-light btn-lg px-4">
+                    <i class="bi bi-bag"></i> Ver Produtos
+                </a>
+                <a href="{{ url_for('loja.produtos') }}?ordem=preco-asc" class="btn btn-outline-light btn-lg px-4">
+                    <i class="bi bi-tag"></i> Ofertas
+                </a>
+            </div>
+        </div>
+        <div class="col-lg-5 text-center d-none d-lg-block">
+            <i class="bi bi-phone" style="font-size: 10rem; opacity: 0.2;"></i>
+        </div>
+    </div>
+</div>
+
+<!-- Categorias -->
+<div class="mb-5">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="mb-0">Categorias</h2>
+        <a href="{{ url_for('loja.produtos') }}" class="btn btn-outline-primary btn-sm">
+            Ver Todas <i class="bi bi-arrow-right"></i>
+        </a>
+    </div>
+    <div class="row">
+        {% for categoria in categorias[:6] %}
+        <div class="col-md-2 col-4 mb-3">
+            <a href="{{ url_for('loja.categoria', slug=categoria.slug) }}" class="text-decoration-none">
+                <div class="card category-card h-100">
+                    <div class="card-body text-center">
+                        <i class="bi bi-tag category-icon text-primary"></i>
+                        <p class="mb-0 fw-bold text-dark small">{{ categoria.nome }}</p>
+                    </div>
+                </div>
+            </a>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+
+<!-- Produtos em Destaque -->
+<div class="mb-5">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h2 class="mb-0">
+            <i class="bi bi-star-fill text-warning"></i> Produtos em Destaque
+        </h2>
+        <a href="{{ url_for('loja.produtos') }}" class="btn btn-outline-primary btn-sm">
+            Ver Todos <i class="bi bi-arrow-right"></i>
+        </a>
+    </div>
+    <div class="row">
+        {% for produto in produtos %}
+        <div class="col-lg-3 col-md-4 col-sm-6 mb-4">
+            <div class="card product-card-new h-100">
+                {% if produto.preco_antigo and produto.preco_antigo > produto.preco %}
+                <span class="position-absolute top-0 start-0 m-3 badge bg-danger">
+                    -{{ produto.desconto_percentual }}%
+                </span>
+                {% endif %}
+
+                {% if produto.imagem %}
+                <a href="{{ url_for('loja.produto', slug=produto.slug) }}" class="text-decoration-none">
+                    <img src="{{ url_for('static', filename='uploads/' + produto.imagem) }}"
+                         class="card-img-top" alt="{{ produto.nome }}">
+                </a>
+                {% else %}
+                <a href="{{ url_for('loja.produto', slug=produto.slug) }}" class="text-decoration-none">
+                    <div class="card-img-top d-flex align-items-center justify-content-center bg-light"
+                         style="height: 220px;">
+                        <i class="bi bi-image text-muted" style="font-size: 3rem;"></i>
+                    </div>
+                </a>
+                {% endif %}
+
+                <div class="card-body">
+                    <span class="badge bg-secondary mb-2">{{ produto.categoria.nome if produto.categoria else '' }}</span>
+                    <h5 class="card-title">
+                        <a href="{{ url_for('loja.produto', slug=produto.slug) }}" class="text-decoration-none text-dark">
+                            {{ produto.nome }}
+                        </a>
+                    </h5>
+
+                    {% if produto.preco_antigo and produto.preco_antigo > produto.preco %}
+                    <p class="text-muted small text-decoration-line-through mb-1">
+                        R$ {{ "%.2f"|format(produto.preco_antigo) }}
+                    </p>
+                    {% endif %}
+                    <p class="preco mb-2">R$ {{ "%.2f"|format(produto.preco) }}</p>
+
+                    {% if produto.estoque > 0 %}
+                    <a href="{{ url_for('loja.produto', slug=produto.slug) }}" class="btn btn-primary w-100 btn-sm">
+                        <i class="bi bi-cart-plus"></i> Comprar
+                    </a>
+                    {% else %}
+                    <button class="btn btn-secondary w-100 btn-sm" disabled>
+                        <i class="bi bi-x"></i> Esgotado
+                    </button>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+        {% else %}
+        <div class="col-12">
+            <div class="alert alert-info text-center">
+                <i class="bi bi-info-circle"></i>
+                Nenhum produto cadastrado ainda.
+                <a href="{{ url_for('admin_produtos.index') }}" class="alert-link">Adicione produtos aqui</a>.
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    <div class="text-center mt-4">
+        <a href="{{ url_for('loja.produtos') }}" class="btn btn-outline-primary">
+            Ver Todos os Produtos <i class="bi bi-arrow-right"></i>
+        </a>
+    </div>
+</div>
+
+<!-- Features -->
+<div class="bg-light rounded-3 p-5 mb-5">
+    <div class="row text-center">
+        <div class="col-md-3 col-6 mb-4">
+            <div class="feature-box">
+                <div class="feature-icon bg-primary text-white">
+                    <i class="bi bi-truck"></i>
+                </div>
+                <h6>Frete Grátis</h6>
+                <p class="small text-muted mb-0">Em compras acima de R$ 100</p>
+            </div>
+        </div>
+        <div class="col-md-3 col-6 mb-4">
+            <div class="feature-box">
+                <div class="feature-icon bg-success text-white">
+                    <i class="bi bi-shield-check"></i>
+                </div>
+                <h6>Garantia</h6>
+                <p class="small text-muted mb-0">30 dias em todos os produtos</p>
+            </div>
+        </div>
+        <div class="col-md-3 col-6 mb-4">
+            <div class="feature-box">
+                <div class="feature-icon bg-warning text-dark">
+                    <i class="bi bi-credit-card"></i>
+                </div>
+                <h6>Pagamento Seguro</h6>
+                <p class="small text-muted mb-0">Pix e Cartão de Crédito</p>
+            </div>
+        </div>
+        <div class="col-md-3 col-6 mb-4">
+            <div class="feature-box">
+                <div class="feature-icon bg-info text-white">
+                    <i class="bi bi-headset"></i>
+                </div>
+                <h6>Suporte</h6>
+                <p class="small text-muted mb-0">Atendimento 24/7</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Newsletter -->
+<div class="card bg-primary text-white border-0">
+    <div class="card-body py-5">
+        <div class="row align-items-center">
+            <div class="col-md-8">
+                <h3 class="mb-2">📧 Receba ofertas exclusivas!</h3>
+                <p class="mb-0 opacity-75">Cadastre-se e receba promoções e descontos exclusivos no seu email.</p>
+            </div>
+            <div class="col-md-4">
+                <div class="input-group">
+                    <input type="email" class="form-control" placeholder="Seu melhor email">
+                    <button class="btn btn-dark" type="button">Cadastrar</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

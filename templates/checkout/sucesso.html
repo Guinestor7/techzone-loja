@@ -1,0 +1,36 @@
+{% extends 'base.html' %}
+
+{% block title %}Pagamento Aprovado - TechZone{% endblock %}
+
+{% block content %}
+<div class="text-center py-5">
+    <div class="mb-4">
+        <i class="bi bi-check-circle-fill text-success" style="font-size: 5rem;"></i>
+    </div>
+    <h1 class="text-success">Pagamento Aprovado!</h1>
+    <p class="lead">Seu pedido foi confirmado com sucesso.</p>
+
+    <div class="card mx-auto" style="max-width: 500px;">
+        <div class="card-body">
+            <h5>Pedido #{{ pedido.id }}</h5>
+            <p class="text-muted">Data: {{ pedido.criado_em.strftime('%d/%m/%Y %H:%M') }}</p>
+            <hr>
+            <div class="d-flex justify-content-between">
+                <span>Total Pago:</span>
+                <span class="preco">R$ {{ "%.2f"|format(pedido.total) }}</span>
+            </div>
+            <hr>
+            <p class="mb-0"><strong>Status:</strong> <span class="badge bg-success">{{ pedido.status_display }}</span></p>
+        </div>
+    </div>
+
+    <div class="mt-4">
+        <a href="{{ url_for('checkout.detalhes_pedido', pedido_id=pedido.id) }}" class="btn btn-primary me-2">
+            Ver Detalhes do Pedido
+        </a>
+        <a href="{{ url_for('loja.produtos') }}" class="btn btn-outline-secondary">
+            Continuar Comprando
+        </a>
+    </div>
+</div>
+{% endblock %}

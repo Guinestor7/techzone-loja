@@ -1,0 +1,94 @@
+{% extends 'base.html' %}
+
+{% block title %}Pedido #{{ pedido.id }} - TechZone{% endblock %}
+
+{% block content %}
+<nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="{{ url_for('loja.index') }}">Início</a></li>
+        <li class="breadcrumb-item"><a href="{{ url_for('auth.perfil') }}">Meu Perfil</a></li>
+        <li class="breadcrumb-item active">Pedido #{{ pedido.id }}</li>
+    </ol>
+</nav>
+
+<div class="row">
+    <div class="col-md-8">
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0">Itens do Pedido</h5>
+            </div>
+            <div class="card-body">
+                {% for item in pedido.itens %}
+                <div class="d-flex justify-content-between border-bottom py-2">
+                    <div>
+                        <h6 class="mb-0">{{ item.nome_produto }}</h6>
+                        <small class="text-muted">Qtd: {{ item.quantidade }} x R$ {{ "%.2f"|format(item.preco) }}</small>
+                    </div>
+                    <p class="mb-0 fw-bold">R$ {{ "%.2f"|format(item.subtotal) }}</p>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">Endereço de Entrega</h5>
+            </div>
+            <div class="card-body">
+                {% if pedido.endereco_entrega %}
+                <p class="mb-0">
+                    <strong>{{ pedido.endereco_entrega.rua }}, {{ pedido.endereco_entrega.numero }}</strong><br>
+                    {% if pedido.endereco_entrega.complemento %}{{ pedido.endereco_entrega.complemento }} - {% endif %}
+                    {{ pedido.endereco_entrega.bairro }}<br>
+                    {{ pedido.endereco_entrega.cidade }} - {{ pedido.endereco_entrega.estado }}<br>
+                    CEP: {{ pedido.endereco_entrega.cep }}
+                </p>
+                {% else %}
+                <p class="text-muted mb-0">Endereço não informado</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">Detalhes do Pedido</h5>
+            </div>
+            <div class="card-body">
+                <div class="mb-3">
+                    <small class="text-muted">Número do Pedido</small>
+                    <p class="mb-0"><strong>#{{ pedido.id }}</strong></p>
+                </div>
+                <div class="mb-3">
+                    <small class="text-muted">Data</small>
+                    <p class="mb-0">{{ pedido.criado_em.strftime('%d/%m/%Y %H:%M') }}</p>
+                </div>
+                <div class="mb-3">
+                    <small class="text-muted">Status</small>
+                    <p class="mb-0">
+                        <span class="badge status-{{ pedido.status }}">
+                            {{ pedido.status_display }}
+                        </span>
+                    </p>
+                </div>
+                <div class="mb-3">
+                    <small class="text-muted">Forma de Pagamento</small>
+                    <p class="mb-0">
+                        {% if pedido.forma_pagamento == 'pix' %}
+                            <i class="bi bi-qr-code"></i> Pix
+                        {% else %}
+                            <i class="bi bi-credit-card"></i> Cartão de Crédito
+                        {% endif %}
+                    </p>
+                </div>
+                <hr>
+                <div class="d-flex justify-content-between fw-bold">
+                    <span>Total</span>
+                    <span class="preco">R$ {{ "%.2f"|format(pedido.total) }}</span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

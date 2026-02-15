@@ -1,0 +1,104 @@
+{% extends 'admin/base.html' %}
+
+{% block admin_content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1>Editar Produto</h1>
+    <a href="{{ url_for('admin_produtos.listar') }}" class="btn btn-secondary">Voltar</a>
+</div>
+
+<div class="row">
+    <div class="col-md-8">
+        <div class="card">
+            <div class="card-body">
+                <form method="POST" enctype="multipart/form-data">
+                    <div class="row">
+                        <div class="col-md-8 mb-3">
+                            <label class="form-label">Nome do produto <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" name="nome" value="{{ produto.nome }}" required>
+                        </div>
+
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label">Preço <span class="text-danger">*</span></label>
+                            <input type="number" class="form-control" name="preco" step="0.01" min="0" value="{{ produto.preco }}" required>
+                        </div>
+
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label">Preço antigo</label>
+                            <input type="number" class="form-control" name="preco_antigo" step="0.01" min="0" value="{{ produto.preco_antigo or '' }}">
+                        </div>
+
+                        <div class="col-md-2 mb-3">
+                            <label class="form-label">Estoque <span class="text-danger">*</span></label>
+                            <input type="number" class="form-control" name="estoque" min="0" value="{{ produto.estoque }}" required>
+                        </div>
+
+                        <div class="col-md-3 mb-3">
+                            <label class="form-label">Categoria <span class="text-danger">*</span></label>
+                            <select class="form-select" name="categoria_id" required>
+                                {% for cat in categorias %}
+                                <option value="{{ cat.id }}" {% if cat.id == produto.categoria_id %}selected{% endif %}>
+                                    {{ cat.nome }}
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <div class="col-md-3 mb-3">
+                            <label class="form-label">Nova imagem</label>
+                            <input type="file" class="form-control" name="imagem" accept="image/*">
+                            <small class="text-muted">Deixe em branco para manter a atual</small>
+                        </div>
+
+                        <div class="col-12 mb-3">
+                            <label class="form-label">Descrição</label>
+                            <textarea class="form-control" name="descricao" rows="4">{{ produto.descricao or '' }}</textarea>
+                        </div>
+
+                        <div class="col-12 mb-3">
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" name="ativo" id="ativo" {% if produto.ativo %}checked{% endif %}>
+                                <label class="form-check-label" for="ativo">Produto ativo</label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="d-flex gap-2">
+                        <button type="submit" class="btn btn-success">
+                            <i class="bi bi-check-circle"></i> Atualizar Produto
+                        </button>
+                        <a href="{{ url_for('admin_produtos.listar') }}" class="btn btn-secondary">Cancelar</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header">Imagem Atual</div>
+            <div class="card-body text-center">
+                {% if produto.imagem %}
+                    <img src="{{ url_for('static', filename='uploads/' + produto.imagem) }}"
+                         alt="{{ produto.nome }}" class="img-fluid mb-2">
+                    <p class="text-muted small">{{ produto.imagem }}</p>
+                {% else %}
+                    <div class="bg-light p-4 rounded">
+                        <i class="bi bi-image text-muted" style="font-size: 3rem;"></i>
+                        <p class="text-muted mt-2 mb-0">Sem imagem</p>
+                    </div>
+                {% endif %}
+
+                <div class="mt-3">
+                    <h6>Informações</h6>
+                    <dl class="row">
+                        <dt class="col-sm-6">Slug:</dt>
+                        <dd class="col-sm-6"><small>{{ produto.slug }}</small></dd>
+                        <dt class="col-sm-6">Criado em:</dt>
+                        <dd class="col-sm-6"><small>{{ produto.criado_em.strftime('%d/%m/%Y') }}</small></dd>
+                    </dl>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

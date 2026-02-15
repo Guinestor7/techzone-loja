@@ -1,0 +1,40 @@
+version: '3.8'
+
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: techzone_db
+    environment:
+      POSTGRES_USER: techzone
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-techzone_secret}
+      POSTGRES_DB: techzone
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U techzone"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  app:
+    build: .
+    container_name: techzone_app
+    environment:
+      DATABASE_URL: postgresql://techzone:${DB_PASSWORD:-techzone_secret}@db:5432/techzone
+      FLASK_ENV: production
+      SECRET_KEY: ${SECRET_KEY}
+      PAGSEGURO_TOKEN: ${PAGSEGURO_TOKEN}
+      PAGSEGURO_SANDBOX: ${PAGSEGURO_SANDBOX:-False}
+    ports:
+      - "5000:5000"
+    depends_on:
+      db:
+        condition: service_healthy
+    volumes:
+      - ./instance:/app/instance
+      - ./static/uploads:/app/static/uploads
+
+volumes:
+  postgres_data:

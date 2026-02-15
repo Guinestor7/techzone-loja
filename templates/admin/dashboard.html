@@ -1,0 +1,64 @@
+{% extends 'admin/base.html' %}
+
+{% block admin_content %}
+<h1>Dashboard</h1>
+
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="card text-white bg-primary">
+            <div class="card-body">
+                <h5 class="card-title">Total de Produtos</h5>
+                <p class="card-text display-4">{{ produtos|length }}</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-white bg-success">
+            <div class="card-body">
+                <h5 class="card-title">Produtos Ativos</h5>
+                <p class="card-text display-4">{{ produtos|selectattr('ativo')|list|length }}</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<h3>Produtos Recentes</h3>
+<div class="table-responsive">
+    <table class="table table-striped">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Nome</th>
+                <th>Preço</th>
+                <th>Estoque</th>
+                <th>Status</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for produto in produtos[:10] %}
+            <tr>
+                <td>{{ produto.id }}</td>
+                <td>{{ produto.nome }}</td>
+                <td>R$ {{ "%.2f"|format(produto.preco) }}</td>
+                <td>{{ produto.estoque }}</td>
+                <td>
+                    {% if produto.ativo %}
+                        <span class="badge bg-success">Ativo</span>
+                    {% else %}
+                        <span class="badge bg-secondary">Inativo</span>
+                    {% endif %}
+                </td>
+            </tr>
+            {% else %}
+            <tr>
+                <td colspan="5" class="text-center">Nenhum produto cadastrado.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<a href="{{ url_for('admin_produtos.criar') }}" class="btn btn-primary">
+    <i class="bi bi-plus-circle"></i> Adicionar Produto
+</a>
+{% endblock %}

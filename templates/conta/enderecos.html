@@ -1,0 +1,38 @@
+{% extends 'base.html' %}
+
+{% block title %}Meus Endereços - TechZone{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1>Meus Endereços</h1>
+</div>
+
+<div class="row">
+    {% for endereco in enderecos %}
+    <div class="col-md-6 mb-3">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">
+                    {{ endereco.rua }}, {{ endereco.numero }}
+                </h5>
+                <p class="card-text mb-1">
+                    {% if endereco.complemento %}{{ endereco.complemento }} - {% endif %}
+                    {{ endereco.bairro }}
+                </p>
+                <p class="card-text mb-1">
+                    {{ endereco.cidade }} - {{ endereco.estado }}
+                </p>
+                <p class="card-text text-muted">CEP: {{ endereco.cep }}</p>
+            </div>
+        </div>
+    </div>
+    {% else %}
+    <div class="col-12">
+        <div class="alert alert-info">
+            <i class="bi bi-info-circle"></i> Você ainda não possui endereços cadastrados.
+            Os endereços são adicionados durante o checkout.
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% endblock %}

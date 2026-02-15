@@ -1,0 +1,27 @@
+{% extends 'base.html' %}
+
+{% block title %}Pagamento Falhou - TechZone{% endblock %}
+
+{% block content %}
+<div class="text-center py-5">
+    <div class="mb-4">
+        <i class="bi bi-x-circle-fill text-danger" style="font-size: 5rem;"></i>
+    </div>
+    <h1 class="text-danger">Pagamento Não Aprovado</h1>
+    <p class="lead">Não foi possível processar seu pagamento.</p>
+
+    <div class="alert alert-warning d-inline-block" style="max-width: 500px;">
+        <i class="bi bi-info-circle"></i>
+        Se o dinheiro foi descontado da sua conta, entre em contato conosco.
+    </div>
+
+    <div class="mt-4">
+        <a href="{{ url_for('checkout.detalhes_pedido', pedido_id=pedido.id) }}" class="btn btn-primary me-2">
+            Ver Pedido
+        </a>
+        <a href="{{ url_for('loja.produtos') }}" class="btn btn-outline-secondary">
+            Continuar Comprando
+        </a>
+    </div>
+</div>
+{% endblock %}

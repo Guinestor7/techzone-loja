@@ -1,0 +1,227 @@
+{% extends 'base.html' %}
+
+{% block title %}Produtos - TechZone{% endblock %}
+
+{% block content %}
+<style>
+.filter-card {
+    position: sticky;
+    top: 80px;
+}
+.product-card-list {
+    transition: all 0.3s ease;
+    border: none;
+    box-shadow: 0 2px 15px rgba(0,0,0,0.08);
+    overflow: hidden;
+}
+.product-card-list:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 15px 35px rgba(0,0,0,0.15);
+}
+.product-card-list .card-img-top {
+    height: 220px;
+    object-fit: contain;
+    padding: 1.5rem;
+    background: #f8f9fa;
+}
+.badge-discount {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+}
+</style>
+
+<div class="row">
+    <!-- Sidebar de Filtros -->
+    <div class="col-lg-3 mb-4">
+        <div class="card filter-card">
+            <div class="card-header bg-white">
+                <h5 class="mb-0"><i class="bi bi-funnel"></i> Filtros</h5>
+            </div>
+            <div class="card-body">
+                <!-- Busca -->
+                <form method="GET" action="{{ url_for('loja.produtos') }}" class="mb-4">
+                    <div class="mb-3">
+                        <label class="form-label fw-bold">
+                            <i class="bi bi-search"></i> Buscar
+                        </label>
+                        <input type="text" name="q" value="{{ busca }}" class="form-control" placeholder="Nome do produto...">
+                    </div>
+
+                    <!-- Categorias -->
+                    <div class="mb-4">
+                        <label class="form-label fw-bold">
+                            <i class="bi bi-tag"></i> Categorias
+                        </label>
+                        <select name="categoria" class="form-select">
+                            <option value="">Todas as categorias</option>
+                            {% for cat in categorias %}
+                            <option value="{{ cat.slug }}" {% if cat.slug == categoria_atual %}selected{% endif %}>
+                                {{ cat.nome }}
+                            </option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <!-- Ordenação -->
+                    <div class="mb-4">
+                        <label class="form-label fw-bold">
+                            <i class="bi bi-sort-down"></i> Ordenar por
+                        </label>
+                        <select name="ordem" class="form-select">
+                            <option value="novos" {% if ordenar == 'novos' %}selected{% endif %}>
+                                <i class="bi bi-clock"></i> Mais novos
+                            </option>
+                            <option value="preco-asc" {% if ordenar == 'preco-asc' %}selected{% endif %}>
+                                <i class="bi bi-sort-numeric-down"></i> Menor preço
+                            </option>
+                            <option value="preco-desc" {% if ordenar == 'preco-desc' %}selected{% endif %}>
+                                <i class="bi bi-sort-numeric-up"></i> Maior preço
+                            </option>
+                            <option value="nome" {% if ordenar == 'nome' %}selected{% endif %}>
+                                <i class="bi bi-sort-alpha-down"></i> Nome A-Z
+                            </option>
+                        </select>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary w-100 mb-2">
+                        <i class="bi bi-check-circle"></i> Aplicar Filtros
+                    </button>
+                    <a href="{{ url_for('loja.produtos') }}" class="btn btn-outline-secondary w-100">
+                        <i class="bi bi-x-circle"></i> Limpar Filtros
+                    </a>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Lista de Produtos -->
+    <div class="col-lg-9">
+        <!-- Header -->
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <div>
+                <h1 class="mb-1">Produtos</h1>
+                <p class="text-muted mb-0">
+                    <span class="badge bg-secondary">{{ produtos.total }}</span> produto(s) encontrado(s)
+                </p>
+            </div>
+            <div class="d-none d-md-block">
+                <div class="btn-group" role="group">
+                    <a href="{{ url_for('loja.produtos', categoria=categoria_atual, q=busca, ordem=ordenar) }}?grid=grid"
+                       class="btn btn-outline-secondary active">
+                        <i class="bi bi-grid"></i>
+                    </a>
+                    <a href="{{ url_for('loja.produtos', categoria=categoria_atual, q=busca, ordem=ordenar) }}?grid=list"
+                       class="btn btn-outline-secondary">
+                        <i class="bi bi-list"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <!-- Produtos -->
+        <div class="row">
+            {% for produto in produtos.items %}
+            <div class="col-lg-4 col-md-6 mb-4">
+                <div class="card product-card-list h-100">
+                    {% if produto.preco_antigo and produto.preco_antigo > produto.preco %}
+                    <span class="badge badge-discount bg-danger">
+                        -{{ produto.desconto_percentual }}%
+                    </span>
+                    {% endif %}
+
+                    {% if produto.imagem %}
+                    <a href="{{ url_for('loja.produto', slug=produto.slug) }}" class="text-decoration-none position-relative">
+                        <img src="{{ url_for('static', filename='uploads/' + produto.imagem) }}"
+                             class="card-img-top rounded-top" alt="{{ produto.nome }}">
+                    </a>
+                    {% else %}
+                    <a href="{{ url_for('loja.produto', slug=produto.slug) }}" class="text-decoration-none">
+                        <div class="card-img-top rounded-top d-flex align-items-center justify-content-center bg-light"
+                             style="height: 220px;">
+                            <i class="bi bi-image text-muted" style="font-size: 3rem;"></i>
+                        </div>
+                    </a>
+                    {% endif %}
+
+                    <div class="card-body">
+                        <span class="badge bg-secondary mb-2 small">{{ produto.categoria.nome if produto.categoria else '' }}</span>
+                        <h5 class="card-title">
+                            <a href="{{ url_for('loja.produto', slug=produto.slug) }}" class="text-decoration-none text-dark">
+                                {{ produto.nome }}
+                            </a>
+                        </h5>
+
+                        <div class="mb-2">
+                            {% if produto.preco_antigo and produto.preco_antigo > produto.preco %}
+                            <span class="text-muted small text-decoration-line-through">
+                                R$ {{ "%.2f"|format(produto.preco_antigo) }}
+                            </span>
+                            {% endif %}
+                            <p class="preco mb-0">R$ {{ "%.2f"|format(produto.preco) }}</p>
+                        </div>
+
+                        {% if produto.estoque > 10 %}
+                        <span class="badge bg-success mb-2"><i class="bi bi-check"></i> Em estoque</span>
+                        {% elif produto.estoque > 0 %}
+                        <span class="badge bg-warning text-dark mb-2"><i class="bi bi-exclamation"></i> Últimas unidades</span>
+                        {% else %}
+                        <span class="badge bg-danger mb-2"><i class="bi bi-x"></i> Esgotado</span>
+                        {% endif %}
+
+                        <div class="d-grid gap-2 mt-3">
+                            <a href="{{ url_for('loja.produto', slug=produto.slug) }}" class="btn btn-primary btn-sm">
+                                <i class="bi bi-eye"></i> Ver Detalhes
+                            </a>
+                            {% if produto.estoque > 0 %}
+                            <button onclick="addToCart({{ produto.id }})" class="btn btn-outline-primary btn-sm">
+                                <i class="bi bi-cart-plus"></i> Adicionar ao Carrinho
+                            </button>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {% else %}
+            <div class="col-12">
+                <div class="alert alert-info text-center py-5">
+                    <i class="bi bi-search" style="font-size: 3rem;"></i>
+                    <h4 class="mt-3">Nenhum produto encontrado</h4>
+                    <p class="text-muted">Tente ajustar os filtros ou busque por outro termo.</p>
+                    <a href="{{ url_for('loja.produtos') }}" class="btn btn-primary">
+                        <i class="bi bi-arrow-counterclockwise"></i> Limpar Filtros
+                    </a>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+
+        <!-- Paginação -->
+        {% if produtos.pages > 1 %}
+        <nav aria-label="Paginação" class="mt-4">
+            <ul class="pagination justify-content-center">
+                <li class="page-item {% if not produtos.has_prev %}disabled{% endif %}">
+                    <a class="page-link" href="{{ url_for('loja.produtos', page=produtos.prev_num, categoria=categoria_atual, q=busca, ordem=ordenar) }}">
+                        <i class="bi bi-chevron-left"></i> Anterior
+                    </a>
+                </li>
+                {% for page in produtos.iter_pages(left_edge=1, right_edge=1, left_current=2, right_current=2) %}
+                    {% if page %}
+                        <li class="page-item {% if page == produtos.page %}active{% endif %}">
+                            <a class="page-link" href="{{ url_for('loja.produtos', page=page, categoria=categoria_atual, q=busca, ordem=ordenar) }}">{{ page }}</a>
+                        </li>
+                    {% else %}
+                        <li class="page-item disabled"><span class="page-link">...</span></li>
+                    {% endif %}
+                {% endfor %}
+                <li class="page-item {% if not produtos.has_next %}disabled{% endif %}">
+                    <a class="page-link" href="{{ url_for('loja.produtos', page=produtos.next_num, categoria=categoria_atual, q=busca, ordem=ordenar) }}">
+                        Próxima <i class="bi bi-chevron-right"></i>
+                    </a>
+                </li>
+            </ul>
+        </nav>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

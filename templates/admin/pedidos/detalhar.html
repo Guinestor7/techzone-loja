@@ -1,0 +1,141 @@
+{% extends 'admin/base.html' %}
+
+{% block admin_content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h1>Pedido #{{ pedido.id }}</h1>
+    <a href="{{ url_for('admin_pedidos.listar') }}" class="btn btn-secondary">Voltar</a>
+</div>
+
+<div class="row">
+    <!-- Informações do Pedido -->
+    <div class="col-md-6">
+        <div class="card mb-3">
+            <div class="card-header">
+                <h5 class="mb-0">Informações do Pedido</h5>
+            </div>
+            <div class="card-body">
+                <dl class="row">
+                    <dt class="col-sm-4">ID:</dt>
+                    <dd class="col-sm-8">#{{ pedido.id }}</dd>
+
+                    <dt class="col-sm-4">Cliente:</dt>
+                    <dd class="col-sm-8">
+                        {{ pedido.usuario.nome }}<br>
+                        <small class="text-muted">{{ pedido.usuario.email }}</small><br>
+                        <small class="text-muted">{{ pedido.usuario.telefone or '' }}</small>
+                    </dd>
+
+                    <dt class="col-sm-4">Data:</dt>
+                    <dd class="col-sm-8">{{ pedido.criado_em.strftime('%d/%m/%Y %H:%M') }}</dd>
+
+                    <dt class="col-sm-4">Status:</dt>
+                    <dd class="col-sm-8">
+                        <span class="badge status-{{ pedido.status }}">
+                            {{ pedido.status_display }}
+                        </span>
+                    </dd>
+
+                    <dt class="col-sm-4">Pagamento:</dt>
+                    <dd class="col-sm-8">
+                        {% if pedido.forma_pagamento == 'pix' %}
+                            <i class="bi bi-qr-code"></i> Pix
+                        {% else %}
+                            <i class="bi bi-credit-card"></i> Cartão de Crédito
+                        {% endif %}
+                        <br><small class="text-muted">MP: {{ pedido.mp_payment_status or '-' }}</small>
+                    </dd>
+
+                    <dt class="col-sm-4">Total:</dt>
+                    <dd class="col-sm-8 preco">R$ {{ "%.2f"|format(pedido.total) }}</dd>
+                </dl>
+            </div>
+        </div>
+
+        <!-- Endereço de Entrega -->
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">Endereço de Entrega</h5>
+            </div>
+            <div class="card-body">
+                {% if pedido.endereco_entrega %}
+                <p class="mb-0">
+                    <strong>{{ pedido.endereco_entrega.rua }}, {{ pedido.endereco_entrega.numero }}</strong><br>
+                    {% if pedido.endereco_entrega.complemento %}{{ pedido.endereco_entrega.complemento }} - {% endif %}
+                    {{ pedido.endereco_entrega.bairro }}<br>
+                    {{ pedido.endereco_entrega.cidade }} - {{ pedido.endereco_entrega.estado }}<br>
+                    CEP: {{ pedido.endereco_entrega.cep }}
+                </p>
+                {% else %}
+                <p class="text-muted mb-0">Endereço não informado</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Itens do Pedido -->
+    <div class="col-md-6">
+        <div class="card mb-3">
+            <div class="card-header">
+                <h5 class="mb-0">Itens do Pedido</h5>
+            </div>
+            <div class="card-body">
+                {% for item in pedido.itens %}
+                <div class="d-flex justify-content-between border-bottom py-2">
+                    <div>
+                        <h6 class="mb-0">{{ item.nome_produto }}</h6>
+                        <small class="text-muted">Qtd: {{ item.quantidade }} x R$ {{ "%.2f"|format(item.preco) }}</small>
+                    </div>
+                    <p class="mb-0 fw-bold">R$ {{ "%.2f"|format(item.subtotal) }}</p>
+                </div>
+                {% endfor %}
+                <hr>
+                <div class="d-flex justify-content-between fw-bold">
+                    <span>Total:</span>
+                    <span class="preco">R$ {{ "%.2f"|format(pedido.total) }}</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Ações -->
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">Ações</h5>
+            </div>
+            <div class="card-body">
+                <form method="POST" action="{{ url_for('admin_pedidos.atualizar_status', id=pedido.id) }}" class="mb-3">
+                    <label class="form-label">Alterar Status:</label>
+                    <div class="input-group">
+                        <select name="status" class="form-select">
+                            <option value="pendente" {% if pedido.status == 'pendente' %}selected{% endif %}>Pendente</option>
+                            <option value="pago" {% if pedido.status == 'pago' %}selected{% endif %}>Pago</option>
+                            <option value="enviando" {% if pedido.status == 'enviando' %}selected{% endif %}>Enviando</option>
+                            <option value="entregue" {% if pedido.status == 'entregue' %}selected{% endif %}>Entregue</option>
+                            <option value="cancelado" {% if pedido.status == 'cancelado' %}selected{% endif %}>Cancelado</option>
+                        </select>
+                        <button type="submit" class="btn btn-primary">Atualizar</button>
+                    </div>
+                </form>
+
+                <div class="d-grid gap-2">
+                    {% if pedido.status == 'pago' %}
+                    <form method="POST" action="{{ url_for('admin_pedidos.marcar_enviado', id=pedido.id) }}">
+                        <button type="submit" class="btn btn-success">
+                            <i class="bi bi-truck"></i> Marcar como Enviado
+                        </button>
+                    </form>
+                    {% endif %}
+
+                    {% if pedido.status not in ['entregue', 'enviando'] %}
+                    <form method="POST" action="{{ url_for('admin_pedidos.cancelar', id=pedido.id) }}"
+                          onsubmit="return confirm('Tem certeza? O estoque será devolvido.');">
+                        <button type="submit" class="btn btn-danger">
+                            <i class="bi bi-x-circle"></i> Cancelar Pedido
+                        </button>
+                    </form>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

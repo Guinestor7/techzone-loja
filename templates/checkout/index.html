@@ -1,0 +1,211 @@
+{% extends 'base.html' %}
+
+{% block title %}Checkout - TechZone{% endblock %}
+
+{% block content %}
+<h1 class="mb-4">Finalizar Compra</h1>
+
+<form method="POST" action="{{ url_for('checkout.pagar') }}" id="checkout_form">
+<div class="row">
+    <!-- Itens do Pedido -->
+    <div class="col-md-8">
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0">Itens do Pedido</h5>
+            </div>
+            <div class="card-body">
+                {% for item in itens %}
+                <div class="d-flex align-items-center border-bottom py-2">
+                    {% if item.produto.imagem %}
+                    <img src="{{ url_for('static', filename='uploads/' + item.produto.imagem) }}"
+                         alt="{{ item.produto.nome }}" class="rounded me-3" style="width: 60px; height: 60px; object-fit: contain;">
+                    {% endif %}
+                    <div class="flex-grow-1">
+                        <h6 class="mb-0">{{ item.produto.nome }}</h6>
+                        <small class="text-muted">Qtd: {{ item.quantidade }} x R$ {{ "%.2f"|format(item.produto.preco) }}</small>
+                    </div>
+                    <p class="mb-0 fw-bold">R$ {{ "%.2f"|format(item.subtotal) }}</p>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Endereço de Entrega -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <h5 class="mb-0">Endereço de Entrega</h5>
+            </div>
+            <div class="card-body">
+                {% if enderecos %}
+                <div class="mb-3">
+                    {% for endereco in enderecos %}
+                    <div class="form-check border p-3 mb-2 rounded">
+                        <input class="form-check-input" type="radio" name="endereco_id"
+                               id="endereco_{{ endereco.id }}" value="{{ endereco.id }}" {% if loop.first %}checked{% endif %}>
+                        <label class="form-check-label" for="endereco_{{ endereco.id }}">
+                            <strong>{{ endereco.rua }}, {{ endereco.numero }}</strong><br>
+                            {% if endereco.complemento %}{{ endereco.complemento }} - {% endif %}
+                            {{ endereco.bairro }}<br>
+                            {{ endereco.cidade }} - {{ endereco.estado }}<br>
+                            CEP: {{ endereco.cep }}
+                        </label>
+                    </div>
+                    {% endfor %}
+                </div>
+
+                <div class="form-check mb-3">
+                    <input class="form-check-input" type="radio" name="endereco_id" id="novo_endereco" value="">
+                    <label class="form-check-label" for="novo_endereco">
+                        Usar um novo endereço
+                    </label>
+                </div>
+                {% else %}
+                <p class="text-muted mb-3">Cadastre um endereço para entrega:</p>
+                {% endif %}
+
+                <!-- Novo Endereço (se selecionado ou se não há endereços) -->
+                <div id="novo_endereco_form" {% if enderecos %}style="display: none;"{% endif %}>
+                    <div class="row">
+                        <div class="col-md-3 mb-3">
+                            <label class="form-label">CEP <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" name="cep" placeholder="00000-000">
+                        </div>
+                        <div class="col-md-7 mb-3">
+                            <label class="form-label">Rua <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" name="rua">
+                        </div>
+                        <div class="col-md-2 mb-3">
+                            <label class="form-label">Número <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" name="numero">
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label">Complemento</label>
+                            <input type="text" class="form-control" name="complemento" placeholder="Apto, bloco...">
+                        </div>
+                        <div class="col-md-4 mb-3">
+                            <label class="form-label">Bairro <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" name="bairro">
+                        </div>
+                        <div class="col-md-2 mb-3">
+                            <label class="form-label">Cidade <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" name="cidade">
+                        </div>
+                        <div class="col-md-2 mb-3">
+                            <label class="form-label">UF <span class="text-danger">*</span></label>
+                            <select class="form-select" name="estado">
+                                <option value="">UF</option>
+                                <option value="AC">AC</option>
+                                <option value="AL">AL</option>
+                                <option value="AP">AP</option>
+                                <option value="AM">AM</option>
+                                <option value="BA">BA</option>
+                                <option value="CE">CE</option>
+                                <option value="DF">DF</option>
+                                <option value="ES">ES</option>
+                                <option value="GO">GO</option>
+                                <option value="MA">MA</option>
+                                <option value="MT">MT</option>
+                                <option value="MS">MS</option>
+                                <option value="MG">MG</option>
+                                <option value="PA">PA</option>
+                                <option value="PB">PB</option>
+                                <option value="PR">PR</option>
+                                <option value="PE">PE</option>
+                                <option value="PI">PI</option>
+                                <option value="RJ">RJ</option>
+                                <option value="RN">RN</option>
+                                <option value="RS">RS</option>
+                                <option value="RO">RO</option>
+                                <option value="RR">RR</option>
+                                <option value="SC">SC</option>
+                                <option value="SP">SP</option>
+                                <option value="SE">SE</option>
+                                <option value="TO">TO</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Resumo e Pagamento -->
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="mb-0">Resumo</h5>
+            </div>
+            <div class="card-body">
+                <div class="d-flex justify-content-between mb-2">
+                    <span>Subtotal</span>
+                    <span>R$ {{ "%.2f"|format(total) }}</span>
+                </div>
+                <div class="d-flex justify-content-between mb-2">
+                    <span>Frete</span>
+                    <span class="text-success">Grátis</span>
+                </div>
+                <hr>
+                <div class="d-flex justify-content-between fw-bold mb-3">
+                    <span>Total</span>
+                    <span class="preco">R$ {{ "%.2f"|format(total) }}</span>
+                </div>
+
+                <h6 class="mb-3">Forma de Pagamento</h6>
+
+                <div class="list-group mb-3">
+                    <label class="list-group-item d-flex align-items-center">
+                        <input class="form-check-input me-2" type="radio" name="forma_pagamento" value="pix" checked>
+                        <div>
+                            <i class="bi bi-qr-code text-primary"></i>
+                            <strong>Pix</strong>
+                            <p class="small text-muted mb-0">Pagamento instantâneo</p>
+                        </div>
+                    </label>
+                    <label class="list-group-item d-flex align-items-center">
+                        <input class="form-check-input me-2" type="radio" name="forma_pagamento" value="checkout_pro">
+                        <div>
+                            <i class="bi bi-credit-card text-primary"></i>
+                            <strong>Cartão de Crédito</strong>
+                            <p class="small text-muted mb-0">Mercado Pago</p>
+                        </div>
+                    </label>
+                </div>
+
+                <button type="submit" class="btn btn-success w-100 btn-lg">
+                    <i class="bi bi-lock-fill"></i> Pagar Agora
+                </button>
+
+                <p class="text-muted small text-center mt-2 mb-0">
+                    <i class="bi bi-shield-check"></i> Pagamento seguro com PagSeguro
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+</form>
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const novoEnderecoRadio = document.getElementById('novo_endereco');
+    const novoEnderecoForm = document.getElementById('novo_endereco_form');
+
+    if (novoEnderecoRadio) {
+        novoEnderecoRadio.addEventListener('change', function() {
+            novoEnderecoForm.style.display = this.checked ? 'block' : 'none';
+        });
+
+        document.querySelectorAll('input[name="endereco_id"]').forEach(radio => {
+            if (radio.id !== 'novo_endereco') {
+                radio.addEventListener('change', function() {
+                    novoEnderecoForm.style.display = 'none';
+                });
+            }
+        });
+    }
+});
+</script>
+{% endblock %}
+{% endblock %}

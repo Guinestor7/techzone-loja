@@ -1,0 +1,74 @@
+{% extends 'base.html' %}
+
+{% block title %}Meus Pedidos - TechZone{% endblock %}
+
+{% block content %}
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1>Meus Pedidos</h1>
+    <a href="{{ url_for('loja.produtos') }}" class="btn btn-primary">Fazer Nova Compra</a>
+</div>
+
+<div class="table-responsive">
+    <table class="table table-hover">
+        <thead>
+            <tr>
+                <th>Pedido</th>
+                <th>Data</th>
+                <th>Total</th>
+                <th>Status</th>
+                <th>Ações</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for pedido in pedidos.items %}
+            <tr>
+                <td><strong>#{{ pedido.id }}</strong></td>
+                <td>{{ pedido.criado_em.strftime('%d/%m/%Y %H:%M') }}</td>
+                <td>R$ {{ "%.2f"|format(pedido.total) }}</td>
+                <td>
+                    <span class="badge status-{{ pedido.status }}">
+                        {{ pedido.status_display }}
+                    </span>
+                </td>
+                <td>
+                    <a href="{{ url_for('checkout.detalhes_pedido', pedido_id=pedido.id) }}" class="btn btn-sm btn-outline-primary">
+                        Ver Detalhes
+                    </a>
+                </td>
+            </tr>
+            {% else %}
+            <tr>
+                <td colspan="5" class="text-center py-4">
+                    <i class="bi bi-inbox text-muted" style="font-size: 3rem;"></i>
+                    <p class="text-muted mt-2">Você ainda não possui pedidos.</p>
+                    <a href="{{ url_for('loja.produtos') }}" class="btn btn-primary">Começar a Comprar</a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<!-- Paginação -->
+{% if pedidos.pages > 1 %}
+<nav>
+    <ul class="pagination justify-content-center">
+        <li class="page-item {% if not pedidos.has_prev %}disabled{% endif %}">
+            <a class="page-link" href="{{ url_for('auth.pedidos', page=pedidos.prev_num) }}">Anterior</a>
+        </li>
+        {% for page in pedidos.iter_pages() %}
+            {% if page %}
+                <li class="page-item {% if page == pedidos.page %}active{% endif %}">
+                    <a class="page-link" href="{{ url_for('auth.pedidos', page=page) }}">{{ page }}</a>
+                </li>
+            {% else %}
+                <li class="page-item disabled"><span class="page-link">...</span></li>
+            {% endif %}
+        {% endfor %}
+        <li class="page-item {% if not pedidos.has_next %}disabled{% endif %}">
+            <a class="page-link" href="{{ url_for('auth.pedidos', page=pedidos.next_num) }}">Próxima</a>
+        </li>
+    </ul>
+</nav>
+{% endif %}
+{% endblock %}

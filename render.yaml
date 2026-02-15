@@ -1,0 +1,29 @@
+services:
+  # Serviço Web
+  - type: web
+    name: techzone-api
+    env: python
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn run:app --bind 0.0.0.0:5000 --workers 4
+    envVars:
+      - key: FLASK_ENV
+        value: production
+      - key: PYTHONUNBUFFERED
+        value: true
+      - key: DATABASE_URL
+        fromDatabase:
+          name: techzone-db
+          property: connectionString
+      - key: SECRET_KEY
+        generateValue: true
+      - key: PAGSEGURO_TOKEN
+        sync: false
+      - key: PAGSEGURO_SANDBOX
+        value: false
+
+  # Banco PostgreSQL
+  - type: pserv
+    name: techzone-db
+    databaseName: techzone
+    user: techzone
+    plan: free

@@ -1,0 +1,95 @@
+{% extends 'admin/base.html' %}
+
+{% block admin_content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h1>Produtos</h1>
+    <a href="{{ url_for('admin_produtos.criar') }}" class="btn btn-primary">
+        <i class="bi bi-plus-circle"></i> Novo Produto
+    </a>
+</div>
+
+<div class="table-responsive">
+    <table class="table table-striped table-hover">
+        <thead>
+            <tr>
+                <th>Imagem</th>
+                <th>Nome</th>
+                <th>Categoria</th>
+                <th>Preço</th>
+                <th>Estoque</th>
+                <th>Status</th>
+                <th>Ações</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for produto in produtos.items %}
+            <tr>
+                <td>
+                    {% if produto.imagem %}
+                        <img src="{{ url_for('static', filename='uploads/' + produto.imagem) }}"
+                             alt="{{ produto.nome }}" class="img-thumbnail" style="max-width: 50px;">
+                    {% else %}
+                        <span class="text-muted">-</span>
+                    {% endif %}
+                </td>
+                <td>{{ produto.nome }}</td>
+                <td>{{ produto.categoria.nome if produto.categoria else '-' }}</td>
+                <td>
+                    R$ {{ "%.2f"|format(produto.preco) }}
+                    {% if produto.preco_antigo and produto.preco_antigo > produto.preco %}
+                        <small class="text-muted text-decoration-line-through">R$ {{ "%.2f"|format(produto.preco_antigo) }}</small>
+                    {% endif %}
+                </td>
+                <td>{{ produto.estoque }}</td>
+                <td>
+                    {% if produto.ativo %}
+                        <span class="badge bg-success">Ativo</span>
+                    {% else %}
+                        <span class="badge bg-secondary">Inativo</span>
+                    {% endif %}
+                </td>
+                <td>
+                    <a href="{{ url_for('admin_produtos.editar', id=produto.id) }}"
+                       class="btn btn-sm btn-warning">
+                        <i class="bi bi-pencil"></i>
+                    </a>
+                    <form method="POST" action="{{ url_for('admin_produtos.deletar', id=produto.id) }}"
+                          class="d-inline" onsubmit="return confirm('Tem certeza que deseja deletar este produto?');">
+                        <button type="submit" class="btn btn-sm btn-danger">
+                            <i class="bi bi-trash"></i>
+                        </button>
+                    </form>
+                </td>
+            </tr>
+            {% else %}
+            <tr>
+                <td colspan="7" class="text-center">Nenhum produto cadastrado.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+</div>
+
+<!-- Paginação -->
+{% if produtos.pages > 1 %}
+<nav>
+    <ul class="pagination">
+        <li class="page-item {% if not produtos.has_prev %}disabled{% endif %}">
+            <a class="page-link" href="{{ url_for('admin_produtos.listar', page=produtos.prev_num) }}">Anterior</a>
+        </li>
+        {% for page in produtos.iter_pages() %}
+            {% if page %}
+                <li class="page-item {% if page == produtos.page %}active{% endif %}">
+                    <a class="page-link" href="{{ url_for('admin_produtos.listar', page=page) }}">{{ page }}</a>
+                </li>
+            {% else %}
+                <li class="page-item disabled"><span class="page-link">...</span></li>
+            {% endif %}
+        {% endfor %}
+        <li class="page-item {% if not produtos.has_next %}disabled{% endif %}">
+            <a class="page-link" href="{{ url_for('admin_produtos.listar', page=produtos.next_num) }}">Próxima</a>
+        </li>
+    </ul>
+</nav>
+{% endif %}
+{% endblock %}

@@ -1,0 +1,303 @@
+{% extends 'base.html' %}
+
+{# Macro para converter quebras de linha #}
+{% macro nl2br(text) %}{{ text|replace('\r\n', '<br>')|replace('\n', '<br>')|safe }}{% endmacro %}
+
+{% block title %}{{ produto.nome }} - TechZone{% endblock %}
+
+{% block content %}
+<style>
+.product-gallery {
+    position: relative;
+}
+.product-image {
+    width: 100%;
+    height: 400px;
+    object-fit: contain;
+    background: #f8f9fa;
+}
+.product-info h1 {
+    font-size: 2rem;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+}
+.product-price {
+    font-size: 2.5rem;
+    font-weight: 700;
+    color: #0d6efd;
+}
+.product-price-old {
+    font-size: 1.25rem;
+    text-decoration: line-through;
+    color: #6c757d;
+}
+.discount-badge {
+    font-size: 1rem;
+    vertical-align: middle;
+}
+.stock-badge {
+    font-size: 0.9rem;
+    padding: 0.5rem 1rem;
+}
+.btn-add-cart {
+    padding: 1rem 2rem;
+    font-size: 1.1rem;
+}
+</style>
+
+<!-- Breadcrumb -->
+<nav aria-label="breadcrumb" class="mb-4">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="{{ url_for('loja.index') }}" class="text-decoration-none">Início</a></li>
+        <li class="breadcrumb-item"><a href="{{ url_for('loja.produtos') }}" class="text-decoration-none">Produtos</a></li>
+        {% if produto.categoria %}
+        <li class="breadcrumb-item"><a href="{{ url_for('loja.categoria', slug=produto.categoria.slug) }}" class="text-decoration-none">{{ produto.categoria.nome }}</a></li>
+        {% endif %}
+        <li class="breadcrumb-item active">{{ produto.nome }}</li>
+    </ol>
+</nav>
+
+<div class="row g-4">
+    <!-- Galeria de Imagens -->
+    <div class="col-lg-6">
+        <div class="card border-0 shadow-sm">
+            <div class="product-gallery p-4">
+                {% if produto.imagem %}
+                <img src="{{ url_for('static', filename='uploads/' + produto.imagem) }}"
+                     class="product-image rounded" alt="{{ produto.nome }}">
+                {% else %}
+                <div class="product-image rounded d-flex align-items-center justify-content-center bg-light">
+                    <div class="text-center">
+                        <i class="bi bi-image text-muted" style="font-size: 4rem;"></i>
+                        <p class="text-muted mt-2">Imagem não disponível</p>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- Thumbnails (se houver mais imagens no futuro) -->
+        <div class="row g-2 mt-2">
+            <div class="col-3">
+                <div class="ratio ratio-1x1">
+                    {% if produto.imagem %}
+                    <img src="{{ url_for('static', filename='uploads/' + produto.imagem) }}"
+                         class="rounded border" style="object-fit: cover; cursor: pointer;"
+                         onclick="document.querySelector('.product-image img').src = this.src">
+                    {% else %}
+                    <div class="rounded border bg-light d-flex align-items-center justify-content-center">
+                        <i class="bi bi-image text-muted"></i>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Informações do Produto -->
+    <div class="col-lg-6">
+        <div class="product-info">
+            <span class="badge bg-secondary mb-2">{{ produto.categoria.nome if produto.categoria else 'Sem categoria' }}</span>
+            <h1>{{ produto.nome }}</h1>
+
+            <!-- Avaliação (decorativa) -->
+            <div class="mb-3">
+                <span class="text-warning">
+                    <i class="bi bi-star-fill"></i>
+                    <i class="bi bi-star-fill"></i>
+                    <i class="bi bi-star-fill"></i>
+                    <i class="bi bi-star-fill"></i>
+                    <i class="bi bi-star-half"></i>
+                </span>
+                <span class="text-muted">(4.5) - 12 avaliações</span>
+            </div>
+
+            <!-- Preço -->
+            <div class="bg-light p-4 rounded mb-4">
+                {% if produto.preco_antigo and produto.preco_antigo > produto.preco %}
+                <p class="product-price-old mb-1">De: R$ {{ "%.2f"|format(produto.preco_antigo) }}</p>
+                <div class="d-flex align-items-center gap-3">
+                    <span class="product-price">R$ {{ "%.2f"|format(produto.preco) }}</span>
+                    <span class="badge bg-danger discount-badge">{{ produto.desconto_percentual }}% OFF</span>
+                </div>
+                <p class="text-success small mt-2">
+                    <i class="bi bi-check-circle"></i> Você economiza R$ {{ "%.2f"|format(produto.preco_antigo - produto.preco) }}
+                </p>
+                {% else %}
+                <span class="product-price">R$ {{ "%.2f"|format(produto.preco) }}</span>
+                {% endif %}
+            </div>
+
+            <!-- Estoque -->
+            <div class="mb-4">
+                {% if produto.estoque > 10 %}
+                <span class="badge bg-success stock-badge">
+                    <i class="bi bi-check-circle"></i> Em estoque
+                </span>
+                {% elif produto.estoque > 0 %}
+                <span class="badge bg-warning text-dark stock-badge">
+                    <i class="bi bi-exclamation-triangle"></i> Últimas unidades ({{ produto.estoque }})
+                </span>
+                {% else %}
+                <span class="badge bg-danger stock-badge">
+                    <i class="bi bi-x-circle"></i> Fora de estoque
+                </span>
+                {% endif %}
+            </div>
+
+            <!-- Descrição -->
+            {% if produto.descricao %}
+            <div class="mb-4">
+                <h5 class="mb-3">Descrição</h5>
+                <p class="text-muted">{{ nl2br(produto.descricao) }}</p>
+            </div>
+            {% endif %}
+
+            <!-- Ações -->
+            <div class="d-grid gap-3">
+                {% if produto.estoque > 0 %}
+                <div class="row g-2">
+                    <div class="col-md-4">
+                        <input type="number" class="form-control form-control-lg" value="1" min="1" max="{{ produto.estoque }}" id="quantidade">
+                    </div>
+                    <div class="col-md-8">
+                        <button onclick="addToCart({{ produto.id }})" class="btn btn-primary btn-add-cart w-100">
+                            <i class="bi bi-cart-plus"></i> Adicionar ao Carrinho
+                        </button>
+                    </div>
+                </div>
+                {% if current_user.is_authenticated %}
+                <a href="{{ url_for('carrinho.index') }}" class="btn btn-outline-success btn-lg">
+                    <i class="bi bi-bag-check"></i> Ir para o Carrinho
+                </a>
+                {% else %}
+                <a href="{{ url_for('carrinho.index') }}" class="btn btn-outline-success btn-lg">
+                    <i class="bi bi-bag-check"></i> Ir para o Carrinho
+                </a>
+                {% endif %}
+                <a href="{{ url_for('loja.produtos') }}" class="btn btn-outline-secondary">
+                    <i class="bi bi-arrow-left"></i> Continuar Comprando
+                </a>
+                {% else %}
+                <button class="btn btn-secondary btn-lg w-100" disabled>
+                    <i class="bi bi-cart-x"></i> Produto Indisponível
+                </button>
+                <button class="btn btn-outline-info" onclick="alert('Avise-me quando chegar!')">
+                    <i class="bi bi-bell"></i> Avise-me quando chegar
+                </button>
+                {% endif %}
+            </div>
+
+            <!-- Informações adicionais -->
+            <div class="mt-4 pt-4 border-top">
+                <div class="row text-center">
+                    <div class="col-4">
+                        <i class="bi bi-truck text-primary" style="font-size: 1.5rem;"></i>
+                        <p class="small mb-0">Frete Grátis</p>
+                    </div>
+                    <div class="col-4">
+                        <i class="bi bi-shield-check text-primary" style="font-size: 1.5rem;"></i>
+                        <p class="small mb-0">Garantia de 30 dias</p>
+                    </div>
+                    <div class="col-4">
+                        <i class="bi bi-credit-card text-primary" style="font-size: 1.5rem;"></i>
+                        <p class="small mb-0">Pagamento Seguro</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Produtos Relacionados -->
+{% if relacionados %}
+<div class="mt-5 pt-5 border-top">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h3>Produtos Relacionados</h3>
+        <a href="{{ url_for('loja.produtos') }}" class="btn btn-outline-primary btn-sm">
+            Ver Todos <i class="bi bi-arrow-right"></i>
+        </a>
+    </div>
+    <div class="row">
+        {% for rel in relacionados %}
+        <div class="col-md-3 col-sm-6 mb-4">
+            <div class="card product-card h-100 border-0 shadow-sm">
+                {% if rel.preco_antigo and rel.preco_antigo > rel.preco %}
+                <span class="position-absolute top-0 end-0 m-2 badge bg-danger">-{{ rel.desconto_percentual }}%</span>
+                {% endif %}
+
+                {% if rel.imagem %}
+                <a href="{{ url_for('loja.produto', slug=rel.slug) }}" class="text-decoration-none">
+                    <img src="{{ url_for('static', filename='uploads/' + rel.imagem) }}"
+                         class="card-img-top rounded-top" alt="{{ rel.nome }}"
+                         style="height: 180px; object-fit: contain; padding: 1rem;">
+                </a>
+                {% else %}
+                <a href="{{ url_for('loja.produto', slug=rel.slug) }}" class="text-decoration-none">
+                    <div class="card-img-top rounded-top d-flex align-items-center justify-content-center bg-light"
+                         style="height: 180px;">
+                        <i class="bi bi-image text-muted" style="font-size: 2rem;"></i>
+                    </div>
+                </a>
+                {% endif %}
+
+                <div class="card-body">
+                    <h6 class="card-title">
+                        <a href="{{ url_for('loja.produto', slug=rel.slug) }}" class="text-decoration-none text-dark">
+                            {{ rel.nome }}
+                        </a>
+                    </h6>
+                    {% if rel.preco_antigo and rel.preco_antigo > rel.preco %}
+                    <p class="text-muted small text-decoration-line-through mb-1">R$ {{ "%.2f"|format(rel.preco_antigo) }}</p>
+                    {% endif %}
+                    <p class="preco mb-2">R$ {{ "%.2f"|format(rel.preco) }}</p>
+                    <a href="{{ url_for('loja.produto', slug=rel.slug) }}" class="btn btn-sm btn-outline-primary w-100">
+                        Ver Detalhes
+                    </a>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+</div>
+{% endif %}
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+function addToCart(produtoId) {
+    const quantidade = parseInt(document.getElementById('quantidade').value) || 1;
+
+    fetch(`/carrinho/adicionar/${produtoId}`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ quantity: quantidade })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            updateCartCount();
+            // Sweet alert ou toast
+            const toast = document.createElement('div');
+            toast.className = 'alert alert-success alert-dismissible fade show position-fixed';
+            toast.style.cssText = 'top: 20px; right: 20px; z-index: 9999; min-width: 300px;';
+            toast.innerHTML = `
+                <i class="bi bi-check-circle"></i> ${quantidade} produto(s) adicionado(s) ao carrinho!
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            `;
+            document.body.appendChild(toast);
+            setTimeout(() => toast.remove(), 3000);
+        } else {
+            alert(data.message || 'Erro ao adicionar produto');
+        }
+    })
+    .catch(error => {
+        console.error('Erro:', error);
+        alert('Erro ao adicionar produto ao carrinho');
+    });
+}
+</script>
+{% endblock %}

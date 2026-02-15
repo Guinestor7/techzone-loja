@@ -1,0 +1,47 @@
+{% extends 'admin/base.html' %}
+
+{% block admin_content %}
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h1>Categorias</h1>
+    <a href="{{ url_for('admin_produtos.criar_categoria') }}" class="btn btn-primary">
+        <i class="bi bi-plus-circle"></i> Nova Categoria
+    </a>
+</div>
+
+<div class="row">
+    {% for categoria in categorias %}
+    <div class="col-md-4 mb-3">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">{{ categoria.nome }}</h5>
+                <p class="card-text text-muted">/{{ categoria.slug }}</p>
+                {% if categoria.descricao %}
+                    <p class="card-text">{{ categoria.descricao[:100] }}{% if categoria.descricao|length > 100 %}...{% endif %}</p>
+                {% endif %}
+                <p class="card-text">
+                    <small class="text-muted">{{ categoria.produtos.count() }} produto(s)</small>
+                </p>
+                <div class="btn-group btn-group-sm">
+                    <a href="{{ url_for('admin_produtos.editar_categoria', id=categoria.id) }}"
+                       class="btn btn-outline-warning">
+                        <i class="bi bi-pencil"></i> Editar
+                    </a>
+                    {% if categoria.produtos.count() == 0 %}
+                    <form method="POST" action="{{ url_for('admin_produtos.deletar_categoria', id=categoria.id) }}"
+                          class="d-inline" onsubmit="return confirm('Tem certeza?');">
+                        <button type="submit" class="btn btn-outline-danger">
+                            <i class="bi bi-trash"></i> Deletar
+                        </button>
+                    </form>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+    {% else %}
+    <div class="col-12">
+        <div class="alert alert-info">Nenhuma categoria cadastrada.</div>
+    </div>
+    {% endfor %}
+</div>
+{% endblock %}

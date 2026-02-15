@@ -1,0 +1,30 @@
+{% extends 'base.html' %}
+
+{% block title %}Admin - TechZone{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-2">
+        <div class="list-group">
+            <a href="{{ url_for('admin_produtos.index') }}" class="list-group-item list-group-item-action">
+                <i class="bi bi-speedometer2"></i> Dashboard
+            </a>
+            <a href="{{ url_for('admin_produtos.listar') }}" class="list-group-item list-group-item-action">
+                <i class="bi bi-box"></i> Produtos
+            </a>
+            <a href="{{ url_for('admin_produtos.categorias') }}" class="list-group-item list-group-item-action">
+                <i class="bi bi-tags"></i> Categorias
+            </a>
+            <a href="{{ url_for('admin_pedidos.listar') }}" class="list-group-item list-group-item-action">
+                <i class="bi bi-receipt"></i> Pedidos
+            </a>
+            <a href="{{ url_for('loja.index') }}" class="list-group-item list-group-item-action">
+                <i class="bi bi-shop"></i> Ver Loja
+            </a>
+        </div>
+    </div>
+    <div class="col-md-10">
+        {% block admin_content %}{% endblock %}
+    </div>
+</div>
+{% endblock %}
